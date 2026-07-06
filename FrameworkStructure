@@ -1,0 +1,58 @@
+arget structure:
+
+ENTERPRISEAUTOMATIONFRAMEWORK
+│
+├── framework/                         # CORE ENGINE (completed)
+│   │
+│   ├── api/
+│   ├── assertions/
+│   ├── configuration/
+│   ├── core/
+│   ├── data/
+│   ├── elements/
+│   ├── listeners/
+│   ├── logging/
+│   ├── reporting/
+│   ├── retry/
+│   └── utils/
+│
+│
+├── Projects/
+│   │
+│   ├── project1/
+│   │   │
+│   │   ├── fixtures/
+│   │   │    browserFixture.js
+│   │   │    pageFixture.js
+│   │   │    testFixture.js
+│   │   │
+│   │   ├── pages/
+│   │   │    LoginPage.js
+│   │   │
+│   │   ├── tests/
+│   │   │    ├── ui/
+│   │   │    │    login.test.js
+│   │   │    │
+│   │   │    └── api/
+│   │   │         userApi.test.js
+│   │   │
+│   │   ├── config/
+│   │   │    qa.json
+│   │   │    uat.json
+│   │   │
+│   │   ├── test-data/
+│   │   │    login.json
+│   │   │
+│   │   ├── global-setup.js
+│   │   └── playwright.config.js
+│   │
+│   │
+│   ├── project2/
+│   │
+│   └── project3/
+│
+│
+├── AutomationResults/
+│
+├── package.json
+└── node_modules/
