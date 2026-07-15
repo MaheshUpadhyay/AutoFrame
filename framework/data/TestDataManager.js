@@ -417,11 +417,6 @@ class TestDataManager {
     }
 
 
-
-
-
-
-
     clearCache(){
 
         this.#cache.clear();

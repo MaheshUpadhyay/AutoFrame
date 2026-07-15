@@ -1,0 +1,45 @@
+{
+  "application": {
+
+    "name": "KnowledgeWare",
+
+    "baseUrl": "https://www.knowledgeware.in/final.html"
+
+  },
+
+
+  "timeout": {
+
+    "default": 30000,
+
+    "test": 60000,
+
+    "expect": 10000,
+
+    "action": 30000,
+
+    "navigation": 30000
+
+  },
+
+
+  "execution": {
+
+    "workers": 3,
+
+    "retries": 0
+
+  },
+
+
+  "reporting": {
+
+    "screenshot": true,
+
+    "video": true,
+
+    "trace": true
+
+  }
+
+}

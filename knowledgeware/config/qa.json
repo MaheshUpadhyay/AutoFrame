@@ -1,0 +1,74 @@
+{
+  "application": {
+
+    "name": "KnowledgeWare",
+
+    "baseUrl": "https://www.knowledgeware.in/final.html"
+
+  },
+
+
+  "api": {
+
+    "baseUrl": "https://automatedscript-api.onrender.com",
+
+
+    "timeout": 30000,
+
+
+    "headers": {
+
+      "Content-Type": "application/json",
+
+      "Accept": "application/json"
+
+    },
+
+
+    "retry": {
+
+      "enabled": true,
+
+      "count": 2,
+
+      "delay": 1000
+
+    }
+
+  },
+
+
+  "timeout": {
+
+    "default": 30000,
+
+    "test": 60000,
+
+    "expect": 10000,
+
+    "action": 30000,
+
+    "navigation": 30000
+
+  },
+
+
+  "execution": {
+
+    "workers": 3,
+
+    "retries": 0
+
+  },
+
+
+  "reporting": {
+
+    "screenshot": true,
+
+    "video": true,
+
+    "trace": true
+
+  }
+}

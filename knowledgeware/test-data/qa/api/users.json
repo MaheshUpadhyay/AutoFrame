@@ -1,0 +1,10 @@
+{
+  "TC_GET_USER_001": {
+
+    "endpoint": "/users/1",
+
+    "expectedStatus": 200,
+
+    "expectedId": 1
+  }
+}

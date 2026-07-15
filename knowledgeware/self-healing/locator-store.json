@@ -1,0 +1,31 @@
+{
+    "LoginPage.usernameTextbox": {
+        "primary": "input[name='name']",
+        "successfulLocator": "input[name='name']",
+        "attributes": {
+            "tag": "input",
+            "name": "name",
+            "type": "text"
+        },
+        "lastUpdated": "2026-07-14T19:25:20.611Z"
+    },
+    "LoginPage.passwordTextbox": {
+        "primary": "input[name='password']",
+        "successfulLocator": "input[name='password']",
+        "attributes": {
+            "tag": "input",
+            "name": "password",
+            "type": "text"
+        },
+        "lastUpdated": "2026-07-06T05:53:58.311Z"
+    },
+    "LoginPage.loginButton": {
+        "primary": "a[href='reg.html']",
+        "successfulLocator": "a[href='reg.html']",
+        "attributes": {
+            "tag": "a",
+            "text": "LOGIN"
+        },
+        "lastUpdated": "2026-07-14T19:25:20.966Z"
+    }
+}

@@ -1,0 +1,37 @@
+{
+
+    "TC_LOGIN_001": {
+
+        "description":
+            "Valid admin login",
+
+        "username":
+            "Mahesh",
+
+        "password":
+            "Upadhyay",
+
+        "expected":
+            "Dashboard"
+
+    },
+
+
+    "TC_LOGIN_002": {
+
+        "description":
+            "Invalid password",
+
+        "username":
+            "admin",
+
+        "password":
+            "wrong",
+
+        "expected":
+            "Invalid Login"
+
+    }
+
+
+}

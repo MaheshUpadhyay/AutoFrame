@@ -1,0 +1,11 @@
+{
+  "TC_API_CHAIN_001": {
+    "tokenEndpoint": "/accessToken",
+    "userEndpoint": "/getUserByAccessToken",
+    "expectedStatus": 200
+  },
+  "TC_API_CHAIN_002": {
+    "tokenEndpoint": "/accessToken",
+    "expectedStatus": 200
+  }
+}

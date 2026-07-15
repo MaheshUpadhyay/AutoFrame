@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * Automated Script Enterprise Automation Framework
+ * Enterprise Automation Framework
  *
  * Dynamic Test Runner
  *
@@ -29,32 +29,22 @@ import path
 from "path";
 
 
-
-// ============================================================
-// CLI Arguments
-// ============================================================
-
-
-const args =
-    process.argv.slice(2);
+import { ExecutionOptions }
+from "../framework/execution/ExecutionOptions.js";
 
 
 
-const options = {};
+import { PlaywrightCommandBuilder }
+from "../framework/execution/PlaywrightCommandBuilder.js";
+
+import { TestFileResolver }
+from "../framework/execution/TestFileResolver.js";
 
 
-
-args.forEach(arg=>{
-
-
-    const [key,value] =
-        arg.replace("--","").split("=");
-
-
-    options[key]=value;
-
-
-});
+const options =
+    ExecutionOptions.parse(
+        process.argv.slice(2)
+    );
 
 
 
@@ -70,17 +60,23 @@ args.forEach(arg=>{
 const project =
     options.project;
 
-
 const environment =
-    options.env || "qa";
-
+    options.environment;
 
 const browser =
-    options.browser || "all";
-
+    options.browser;
 
 const type =
-    options.type || "ui";
+    options.type;
+
+const suite =
+    options.suite;
+
+const test =
+    options.test;
+
+const grep =
+    options.grep;
 
 
 
@@ -122,7 +118,34 @@ const projectDirectory =
 
     );
 
+// ============================================================
+// Resolve Execution Target
+// ============================================================
 
+const testsDirectory = path.join(
+    projectDirectory,
+    "tests",
+    type
+);
+
+let targetPath = null;
+
+if (test) {
+
+    targetPath = TestFileResolver.resolveTest(
+        testsDirectory,
+        test
+    );
+
+}
+else if (suite) {
+
+    targetPath = TestFileResolver.resolveSuite(
+        testsDirectory,
+        suite
+    );
+
+}
 
 
 
@@ -151,12 +174,6 @@ if(!fs.existsSync(configPath)){
 
 
 }
-
-
-
-
-
-
 
 
 // ============================================================
@@ -234,7 +251,23 @@ fs.mkdirSync(
 
 
 
+const executionMode =
+    test
+        ? "TEST"
+        : suite
+            ? "SUITE"
+            : grep
+                ? "GREP"
+                : "ALL";
 
+const suiteName =
+    suite || "-";
+
+const testName =
+    test || "-";
+
+const grepValue =
+    grep || "-";
 
 
 
@@ -249,13 +282,21 @@ console.log(`
 
 ====================================
 
- Automated Script Runner
+ Runner
 
  Project      : ${project}
  Environment  : ${environment}
  Type         : ${type}
  Browser      : ${browser}
- Result Path  : ${executionPath}
+ Execution    : ${executionMode}
+
+ Suite        : ${suiteName}
+ Test         : ${testName}
+ Grep         : ${grepValue}
+
+ Result Path  :
+
+ ${executionPath}
 
 ====================================
 
@@ -274,6 +315,19 @@ console.log(`
 // ============================================================
 
 
+ const playwrightCommand =
+    PlaywrightCommandBuilder.build({
+
+        configPath,
+
+        browser,
+
+        targetPath,
+
+        grep
+
+    });
+
 let command =
 
 `
@@ -284,43 +338,13 @@ TEST_TYPE=${type}
 BROWSER=${browser}
 EXECUTION_PATH="${executionPath}"
 ALLURE_RESULTS="${allureResults}"
-playwright test --config="${configPath}"
+${playwrightCommand}
 `;
 
 
 
 
 command = command.replace(/\n/g," ");
-
-
-
-
-
-
-if(
-
-    browser.toLowerCase()
-
-    !==
-
-    "all"
-
-){
-
-
-    command +=
-
-        ` --project ${browser}`;
-
-
-}
-
-
-
-
-
-
-
 
 
 // ============================================================
@@ -353,14 +377,19 @@ try{
  Environment  : ${environment}
  Type         : ${type}
  Browser      : ${browser}
+ Execution    : ${executionMode}
 
- Result Path:
+ Suite        : ${suiteName}
+ Test         : ${testName}
+ Grep         : ${grepValue}
+
+ Result Path  :
 
  ${executionPath}
 
 ====================================
 
-    `);
+`);
 
 
 
