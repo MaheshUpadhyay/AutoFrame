@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AutomatedScript Bank | Beneficiary Management</title>
+    <link rel="icon" type="image/png" href="img/favicon.png">
+	<link rel="shortcut icon" href="/favicon.png" type="image/png">
+    <link rel="stylesheet" href="css/style-dashboard.css">
+    <script src="js/bank-store.js"></script>
+</head>
+
+<body>
+
+    <!-- ================= AUTH GUARD ================= -->
+    <script>
+        (function () {
+            if (sessionStorage.getItem("isLoggedIn") !== "true") {
+                window.location.href = "login.html";
+            }
+        })();
+    </script>
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar">
+        <img src="img/bank-logo.png" class="sidebar-logo">
+        <nav class="menu">
+            <a href="dashboard.html" class="menu-item">Dashboard</a>
+            <a href="accounts-statements.html" class="menu-item">Account Details</a>
+            <a href="beneficiary-mgt.html" class="menu-item">Add Beneficiaries</a>
+            <a href="fund-transfer.html" class="menu-item">Fund Transfers</a>
+            <a href="bill-payments.html" class="menu-item">Bill & Payments</a>
+            <a href="cards-management.html" class="menu-item">Cards Management</a>
+            <a href="loans-credit.html" class="menu-item">Loans & Credit</a>
+            <a href="profile-kyc.html" class="menu-item">Profile & KYC</a>
+            <a href="alert-notification.html" class="menu-item">Alerts & Notification</a>
+            <a href="settings.html" class="menu-item">Settings</a>
+            <a href="help-support.html" class="menu-item">Help & Support</a>
+            <a href="#" class="menu-item logout" onclick="logout()">Logout</a>
+
+        </nav>
+    </aside>
+
+    <!-- ================= MAIN ================= -->
+    <main class="main-content">
+
+        <header class="header">
+            <h1>Beneficiary Management</h1>
+        </header>
+
+        <div class="transfer-container">
+
+            <!-- ================= ADD BENEFICIARY ================= -->
+            <section class="card">
+                <h2>Add Beneficiary</h2>
+
+                <div class="transfer-grid">
+
+                    <div>
+                        <div class="form-group">
+                            <label>Beneficiary Name</label>
+                            <input type="text" id="benName">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Account Number</label>
+                            <input type="text" id="benAccount">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="form-group">
+                            <label>IFSC Code</label>
+                            <input type="text" id="benIfsc">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Bank Name</label>
+                            <input type="text" id="benBank">
+                        </div>
+                    </div>
+
+                </div>
+
+                <p id="error" class="error"></p>
+
+                <div class="form-actions">
+                    <button class="login-btn" onclick="openOtpModal()">Add Beneficiary</button>
+                </div>
+            </section>
+
+            <!-- ================= SEARCH ================= -->
+            <section class="card">
+                <input type="text" id="searchBen" placeholder="Search beneficiary by name or bank"
+                    onkeyup="renderBeneficiaries()">
+            </section>
+
+            <!-- ================= BENEFICIARY LIST ================= -->
+            <section class="card">
+                <h2>Registered Beneficiaries</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Account</th>
+                            <th>Bank</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                            <th>Pay</th>
+                        </tr>
+                    </thead>
+                    <tbody id="benTable"></tbody>
+                </table>
+            </section>
+
+        </div>
+
+        <!-- ================= OTP MODAL ================= -->
+        <div id="otpModal" class="modal hidden">
+            <div class="modal-content">
+                <h3>OTP Verification</h3>
+                <p>OTP sent to registered mobile XXXXX67890</p>
+
+                <input type="text" id="otpInput" placeholder="Enter OTP">
+
+                <p class="training-note">
+                    ⚠️ OTP is simulated for training purposes.
+                    Check alert or browser console.
+                </p>
+
+                <div class="modal-actions">
+                    <button onclick="closeOtp()">Cancel</button>
+                    <button class="login-btn" onclick="verifyOtp()">Verify OTP</button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            © 2025 AutomatedScript Bank |
+            <span class="training-footer">Training Simulation</span>
+        </footer>
+
+    </main>
+
+    <!-- ================= SCRIPT ================= -->
+    <script>
+        /* ================= STATE ================= */
+        // Preloaded beneficiaries (Self Savings, John, Raj) are seeded by
+        // js/bank-store.js on first use, shared with Fund Transfer.
+        const COOL_OFF_MS = BankStore.COOL_OFF_MS;
+        let beneficiaries = BankStore.getBeneficiaries();
+        let generatedOtp = "";
+
+        /* ================= ADD BENEFICIARY ================= */
+        function openOtpModal() {
+            error.innerText = "";
+
+            if (!benName.value || !benAccount.value || !benIfsc.value || !benBank.value) {
+                error.innerText = "All beneficiary fields are mandatory.";
+                return;
+            }
+
+            generatedOtp = Math.floor(100000 + Math.random() * 900000);
+            alert("OTP (Training): " + generatedOtp);
+            otpModal.classList.remove("hidden");
+        }
+
+        function closeOtp() {
+            otpModal.classList.add("hidden");
+        }
+
+        function verifyOtp() {
+            if (otpInput.value != generatedOtp) {
+                alert("Invalid OTP");
+                return;
+            }
+
+            otpModal.classList.add("hidden");
+
+            // Deterministic for automation: a name starting with "Reject"
+            // is always Rejected, every other name is Pending Approval.
+            beneficiaries.push({
+                name: benName.value,
+                account: benAccount.value,
+                bank: benBank.value,
+                addedAt: Date.now(),
+                status: BankStore.statusForNewPayee(benName.value)
+            });
+
+            benName.value = "";
+            benAccount.value = "";
+            benIfsc.value = "";
+            benBank.value = "";
+
+            saveAndRender();
+        }
+
+        /* ================= RENDER ================= */
+        function renderBeneficiaries() {
+            benTable.innerHTML = "";
+            const keyword = searchBen.value.toLowerCase();
+
+            beneficiaries.forEach((b, index) => {
+                if (
+                    !b.name.toLowerCase().includes(keyword) &&
+                    !b.bank.toLowerCase().includes(keyword)
+                ) return;
+
+                const elapsed = Date.now() - b.addedAt;
+                let statusText = b.status;
+                let statusClass = "dormant";
+                let isActive = false;
+
+                if (b.status === "Pending Approval") {
+                    const remaining = COOL_OFF_MS - elapsed;
+                    if (remaining > 0) {
+                        const m = Math.floor(remaining / 60000);
+                        const s = Math.floor((remaining % 60000) / 1000);
+                        statusText = `Pending (${m}:${s.toString().padStart(2, "0")})`;
+                    } else {
+                        b.status = "Active";
+                        statusText = "Active";
+                        statusClass = "active";
+                        isActive = true;
+                    }
+                }
+
+                if (b.status === "Active") {
+                    statusClass = "active";
+                    isActive = true;
+                }
+
+                const payBtn = isActive
+                    ? `<button onclick="payNow('${b.name}')">Pay Now</button>`
+                    : `<button disabled>Pay Now</button>`;
+
+                benTable.innerHTML += `
+            <tr>
+                <td>${b.name}</td>
+                <td>XXXX${b.account.slice(-4)}</td>
+                <td>${b.bank}</td>
+                <td><span class="${statusClass}">${statusText}</span></td>
+                <td>
+                    <button onclick="deleteBeneficiary(${index})">Delete</button>
+                </td>
+                <td>${payBtn}</td>
+            </tr>
+        `;
+            });
+
+            BankStore.saveBeneficiaries(beneficiaries);
+        }
+
+        function payNow(name) {
+            sessionStorage.setItem("selectedBeneficiary", name);
+            window.location.href = "fund-transfer.html";
+        }
+
+
+        function deleteBeneficiary(index) {
+            if (!confirm("Are you sure you want to delete this beneficiary?")) return;
+            beneficiaries.splice(index, 1);
+            saveAndRender();
+        }
+
+        function saveAndRender() {
+            BankStore.saveBeneficiaries(beneficiaries);
+            renderBeneficiaries();
+        }
+
+        /* ================= AUTO REFRESH ================= */
+        setInterval(renderBeneficiaries, 1000);
+
+        /* ================= LOGOUT ================= */
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = "login.html";
+        }
+
+        /* INIT */
+        renderBeneficiaries();
+    </script>
+    <script>
+        (function () {
+            const currentPage = window.location.pathname.split("/").pop();
+
+            document.querySelectorAll(".menu-item").forEach(link => {
+                // 🔴 IMPORTANT: remove active from all first
+                link.classList.remove("active");
+
+                const href = link.getAttribute("href");
+                if (href === currentPage) {
+                    link.classList.add("active");
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>

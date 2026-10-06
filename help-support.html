@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>AutomatedScript Bank | Help & Support</title>
+  <link rel="icon" type="image/png" href="img/favicon.png">
+	<link rel="shortcut icon" href="/favicon.png" type="image/png">
+  <link rel="stylesheet" href="css/style-dashboard.css">
+</head>
+
+<body>
+
+  <!-- ================= AUTH GUARD ================= -->
+  <script>
+    (function () {
+      if (sessionStorage.getItem("isLoggedIn") !== "true") {
+        window.location.href = "login.html";
+      }
+    })();
+  </script>
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <img src="img/bank-logo.png" class="sidebar-logo">
+    <nav class="menu">
+      <a href="dashboard.html" class="menu-item">Dashboard</a>
+      <a href="accounts-statements.html" class="menu-item">Account Details</a>
+      <a href="beneficiary-mgt.html" class="menu-item">Add Beneficiaries</a>
+      <a href="fund-transfer.html" class="menu-item">Fund Transfers</a>
+      <a href="bill-payments.html" class="menu-item">Bill & Payments</a>
+      <a href="cards-management.html" class="menu-item">Cards Management</a>
+      <a href="loans-credit.html" class="menu-item">Loans & Credit</a>
+      <a href="profile-kyc.html" class="menu-item">Profile & KYC</a>
+      <a href="alert-notification.html" class="menu-item">Alerts & Notification</a>
+      <a href="settings.html" class="menu-item">Settings</a>
+      <a href="help-support.html" class="menu-item">Help & Support</a>
+      <a href="#" class="menu-item logout" onclick="logout()">Logout</a>
+
+    </nav>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main-content">
+
+    <header class="header">
+      <h1>Help & Support</h1>
+    </header>
+
+    <!-- ================= SUPPORT TABS ================= -->
+    <div class="card-tabs">
+      <button class="tab active" onclick="showTab('faq')">FAQ</button>
+      <button class="tab" onclick="showTab('request')">Raise Request</button>
+      <button class="tab" onclick="showTab('track')">Track Request</button>
+      <button class="tab" onclick="showTab('chat')">Chatbot</button>
+      <button class="tab" onclick="showTab('locator')">Branch / ATM</button>
+      <button class="tab" onclick="showTab('contact')">Contact Support</button>
+      <button class="tab" onclick="showTab('livechat')">Live Chat</button>
+    </div>
+
+    <div class="transfer-container">
+
+      <!-- ================= FAQ ================= -->
+      <section class="card tab-content" id="faq">
+        <h2>Frequently Asked Questions</h2>
+
+        <details>
+          <summary>How do I reset my password?</summary>
+          <p>You can reset your password from the login page using Forgot Password.</p>
+        </details>
+
+        <details>
+          <summary>How long does beneficiary approval take?</summary>
+          <p>Beneficiary approval takes up to 30 minutes (training simulation).</p>
+        </details>
+
+        <details>
+          <summary>Why is my transaction pending?</summary>
+          <p>Scheduled or NEFT transactions may take some time to process.</p>
+        </details>
+      </section>
+
+      <!-- ================= RAISE REQUEST ================= -->
+      <!-- ================= RAISE REQUEST ================= -->
+      <section class="card tab-content hidden" id="request">
+        <h2>Raise Service Request</h2>
+
+        <div class="form-group">
+          <label>Request Category</label>
+          <select id="reqCategory">
+            <option value="">Select</option>
+            <option>Transaction Issue</option>
+            <option>Card Issue</option>
+            <option>Account Related</option>
+            <option>Technical Issue</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="reqDesc" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Attach File (Optional)</label>
+          <input type="file" id="reqFile">
+          <p class="training-note">
+            ⚠️ File upload is simulated for training.
+          </p>
+        </div>
+
+        <p id="reqError" class="error"></p>
+
+        <div class="form-actions">
+          <button class="login-btn" onclick="raiseRequest()">Submit Request</button>
+        </div>
+      </section>
+
+
+      <!-- ================= TRACK REQUEST ================= -->
+      <section class="card tab-content hidden" id="track">
+        <h2>Track Service Requests</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Request ID</th>
+              <th>Category</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="requestTable"></tbody>
+        </table>
+      </section>
+
+      <!-- ================= CHATBOT ================= -->
+      <section class="card tab-content hidden" id="chat">
+        <h2>Virtual Assistant</h2>
+
+        <div id="chatWindow" class="summary-box" style="height:220px; overflow-y:auto;">
+          <p><strong>Bot:</strong> Hello! How can I help you today?</p>
+        </div>
+
+        <!-- BOT TYPING INDICATOR -->
+        <p id="typingIndicator" class="training-note hidden">
+          🤖 Bot is typing...
+        </p>
+
+        <!-- QUICK REPLIES -->
+        <div class="form-group">
+          <button class="login-btn" onclick="quickReply('reset password')">
+            Reset Password
+          </button>
+          <button class="login-btn" onclick="quickReply('raise ticket')">
+            Raise Ticket
+          </button>
+        </div>
+
+        <!-- CHAT INPUT -->
+        <div class="form-group">
+          <input type="text" id="chatInput" placeholder="Type your message..."
+            onkeydown="if(event.key==='Enter') sendChat()">
+        </div>
+
+        <div class="form-actions">
+          <button class="login-btn" onclick="sendChat()">Send</button>
+          <button class="login-btn" onclick="downloadChat()">Download Chat</button>
+        </div>
+
+        <p class="training-note">
+          ⚠️ Chatbot is simulated for training purposes.
+        </p>
+      </section>
+
+
+
+      <!-- ================= BRANCH / ATM ================= -->
+      <section class="card tab-content hidden" id="locator">
+        <h2>Branch / ATM Locator</h2>
+
+        <div class="form-group">
+          <label>City</label>
+          <select id="city">
+            <option>Delhi</option>
+            <option>Mumbai</option>
+            <option>Bangalore</option>
+          </select>
+        </div>
+
+        <div class="summary-box">
+          <p>✔ Branch: AutomatedScript Bank – Main Road</p>
+          <p>✔ ATM: Available 24x7</p>
+        </div>
+      </section>
+
+      <!-- ================= CONTACT ================= -->
+      <section class="card tab-content hidden" id="contact">
+        <h2>Contact Support</h2>
+
+        <div class="summary-box">
+          <p><strong>Customer Care:</strong> 1800-123-456</p>
+          <p><strong>Email:</strong> support@automatedscriptbank.com</p>
+          <p><strong>Working Hours:</strong> 9 AM – 6 PM</p>
+        </div>
+      </section>
+
+      <!-- ================= LIVE CHAT (IFRAME) ================= -->
+      <section class="card tab-content hidden" id="livechat">
+        <h2>Live Chat with an Agent</h2>
+
+        <p id="chatStatus">Chat status: <strong id="chatStatusText">Connecting...</strong></p>
+
+        <iframe id="liveChat" title="Live chat" src="live-chat.html"
+          style="width:100%; height:560px; border:1px solid #cbd5e1; border-radius:6px; background:white;"></iframe>
+
+        <p class="training-note">
+          ⚠️ Live chat runs inside an iframe (a separate document) for training purposes.
+        </p>
+      </section>
+
+    </div>
+
+    <footer class="footer">
+      © 2025 AutomatedScript Bank |
+      <span class="training-footer">Training Simulation</span>
+    </footer>
+
+  </main>
+
+  <!-- ================= SCRIPT ================= -->
+  <script>
+    let requests = [];
+
+    /* ---------------- TAB SWITCH ---------------- */
+    function showTab(tabId) {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
+      document.querySelector(`[onclick="showTab('${tabId}')"]`).classList.add("active");
+      document.getElementById(tabId).classList.remove("hidden");
+    }
+
+    /* ---------------- RAISE REQUEST ---------------- */
+    function raiseRequest() {
+      reqError.innerText = "";
+
+      if (!reqCategory.value || reqDesc.value.length < 5) {
+        reqError.innerText = "Please enter valid request details.";
+        return;
+      }
+
+      const id = "REQ" + Math.floor(100000 + Math.random() * 900000);
+      const fileName = reqFile.files.length ? reqFile.files[0].name : "N/A";
+
+      const ticket = {
+        id,
+        category: reqCategory.value,
+        desc: reqDesc.value,
+        file: fileName,
+        status: "Open"
+      };
+
+      requests.push(ticket);
+      renderRequests();
+
+      alert("Service Request Raised (Training)");
+
+      simulateStatusFlow(ticket);
+
+      // Reset form
+      reqCategory.value = "";
+      reqDesc.value = "";
+      reqFile.value = "";
+
+      showTab("track");
+    }
+
+    /* ---------------- STATUS FLOW ---------------- */
+    function simulateStatusFlow(ticket) {
+      // Open → In Progress
+      setTimeout(() => {
+        ticket.status = "In Progress";
+        renderRequests();
+      }, 10000);
+
+      // In Progress → Closed
+      setTimeout(() => {
+        ticket.status = "Closed";
+        renderRequests();
+      }, 20000);
+    }
+
+    /* ---------------- RENDER TABLE ---------------- */
+    function renderRequests() {
+      requestTable.innerHTML = "";
+
+      requests.forEach(r => {
+        requestTable.innerHTML += `
+      <tr>
+        <td>${r.id}</td>
+        <td>${r.category}</td>
+        <td>${r.status}</td>
+      </tr>
+    `;
+      });
+    }
+
+    /* ---------------- LOGOUT ---------------- */
+    function logout() {
+      sessionStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    /* ---------------- AUTO LEFT NAV ---------------- */
+    (function () {
+      const page = window.location.pathname.split("/").pop();
+      document.querySelectorAll(".menu-item").forEach(link => {
+        link.classList.remove("active");
+        if (link.getAttribute("href") === page) link.classList.add("active");
+      });
+    })();
+
+    /* ---------------- CHATBOT LOGIC ---------------- */
+    function sendChat() {
+      const input = chatInput.value.trim();
+      if (!input) return;
+
+      appendMessage("You", input);
+      chatInput.value = "";
+
+      showTyping(true);
+
+      setTimeout(() => {
+        showTyping(false);
+        const reply = getBotReply(input.toLowerCase());
+        appendMessage("Bot", reply);
+      }, 1000);
+    }
+
+    /* QUICK REPLY HANDLER */
+    function quickReply(text) {
+      chatInput.value = text;
+      sendChat();
+    }
+
+    /* APPEND MESSAGE */
+    function appendMessage(sender, message) {
+      chatWindow.innerHTML += `<p><strong>${sender}:</strong> ${message}</p>`;
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    /* BOT RESPONSES */
+    function getBotReply(msg) {
+      if (msg.includes("reset password")) {
+        return "You can reset your password using the Forgot Password option on the login page.";
+      }
+      if (msg.includes("raise ticket") || msg.includes("service request")) {
+        return "Please go to the Raise Service Request tab to submit your issue.";
+      }
+      if (msg.includes("transaction")) {
+        return "Transaction issues can be raised via the Raise Service Request option.";
+      }
+      if (msg.includes("card")) {
+        return "For card-related issues, visit Cards Management or raise a service request.";
+      }
+      if (msg.includes("branch") || msg.includes("atm")) {
+        return "Branch and ATM details are available under the Branch / ATM Locator tab.";
+      }
+      if (msg.includes("hello") || msg.includes("hi")) {
+        return "Hello! How can I assist you today?";
+      }
+
+      return "Sorry, I couldn't understand that. Please raise a service request for further assistance.";
+    }
+
+    /* TYPING INDICATOR */
+    function showTyping(show) {
+      typingIndicator.classList.toggle("hidden", !show);
+    }
+
+    /* LIVE CHAT FRAME -> PAGE STATUS */
+    // live-chat.html (inside the iframe) reports its state to this page.
+    window.addEventListener("message", event => {
+      if (event.origin !== window.location.origin) return;
+      const data = event.data || {};
+      if (data.type === "live-chat" && data.status) {
+        chatStatusText.innerText = data.status;
+      }
+    });
+
+    /* DOWNLOAD CHAT */
+    function downloadChat() {
+      const text = chatWindow.innerText;
+      const blob = new Blob([text], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "chat-transcript.txt";
+      a.click();
+
+      URL.revokeObjectURL(url);
+    }
+  </script>
+
+
+</body>
+
+</html>

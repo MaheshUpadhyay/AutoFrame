@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>AutomatedScript Bank | Live Chat</title>
+  <link rel="icon" type="image/png" href="img/favicon.png">
+  <link rel="stylesheet" href="css/style-dashboard.css">
+  <style>
+    body { margin: 0; padding: 14px 18px; background: white; }
+    #messages { height: 170px; overflow-y: auto; }
+    #messages p { margin: 6px 0; }
+    .chat-actions { display: flex; gap: 10px; margin-bottom: 14px; }
+    #helpArticle { width: 100%; height: 170px; border: 1px solid #cbd5e1; border-radius: 6px; }
+  </style>
+</head>
+
+<!-- Loaded inside the Live Chat tab of help-support.html as
+     <iframe id="liveChat" title="Live chat">. Same origin, so it shares
+     the tab's sessionStorage; it is a separate document all the same. -->
+
+<body>
+
+  <h2>Live Chat</h2>
+  <p><strong>Agent:</strong> Ananya (Customer Care)</p>
+
+  <div id="messages" class="summary-box" role="log" aria-label="Chat messages">
+    <p><strong>Ananya:</strong> Hi, I'm Ananya. How can I help you today?</p>
+  </div>
+
+  <p id="agentTyping" class="training-note hidden">Ananya is typing...</p>
+
+  <div class="form-group">
+    <label for="messageInput">Message</label>
+    <input type="text" id="messageInput" placeholder="Type a message..."
+      onkeydown="if(event.key==='Enter') sendMessage()">
+  </div>
+
+  <div class="chat-actions">
+    <button class="login-btn" id="sendBtn" onclick="sendMessage()">Send</button>
+    <button class="login-btn" id="endBtn" onclick="endChat()">End Chat</button>
+  </div>
+
+  <h3>Suggested Article</h3>
+  <!-- A frame inside the frame: for frameLocator().frameLocator() -->
+  <iframe id="helpArticle" title="Help article" src="help-article.html"></iframe>
+
+  <script>
+    function report(status) {
+      // Tell the parent page (help-support.html) the chat state.
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "live-chat", status }, window.location.origin);
+      }
+    }
+
+    function appendMessage(sender, text) {
+      const p = document.createElement("p");
+      const who = document.createElement("strong");
+      who.textContent = sender + ":";
+      p.appendChild(who);
+      p.appendChild(document.createTextNode(" " + text));
+      messages.appendChild(p);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function agentReply(msg) {
+      if (msg.includes("beneficiar") || msg.includes("payee")) {
+        return "A new beneficiary is approved 30 minutes after you add it. The article below explains the steps.";
+      }
+      if (msg.includes("transfer") || msg.includes("transaction")) {
+        return "Your transfers are listed under Recent Transactions on the Dashboard, with their reference ID.";
+      }
+      if (msg.includes("card")) {
+        return "You can block or unblock a card from Cards Management.";
+      }
+      if (msg.includes("hello") || msg.includes("hi")) {
+        return "Hello! What can I help you with?";
+      }
+      return "Thanks for your message. Could you tell me a little more?";
+    }
+
+    function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text) return;
+
+      appendMessage("You", text);
+      messageInput.value = "";
+      agentTyping.classList.remove("hidden");
+
+      setTimeout(() => {
+        agentTyping.classList.add("hidden");
+        appendMessage("Ananya", agentReply(text.toLowerCase()));
+      }, 1000);
+    }
+
+    function endChat() {
+      appendMessage("Ananya", "Chat ended. Thank you for contacting AutomatedScript Bank.");
+      messageInput.disabled = true;
+      sendBtn.disabled = true;
+      endBtn.disabled = true;
+      report("Ended");
+    }
+
+    report("Connected");
+  </script>
+
+</body>
+
+</html>

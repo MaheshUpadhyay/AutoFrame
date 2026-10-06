@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>AutomatedScript Bank | Accounts & Statements</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+	<link rel="shortcut icon" href="/favicon.png" type="image/png">
+  <link rel="stylesheet" href="css/style-dashboard.css">
+  <script src="js/bank-store.js"></script>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <img src="img/bank-logo.png" class="sidebar-logo">
+    <nav class="menu">
+      <a href="dashboard.html" class="menu-item">Dashboard</a>
+      <a href="accounts-statements.html" class="menu-item">Account Details</a>
+      <a href="beneficiary-mgt.html" class="menu-item">Add Beneficiaries</a>
+      <a href="fund-transfer.html" class="menu-item">Fund Transfers</a>
+      <a href="bill-payments.html" class="menu-item">Bill & Payments</a>
+      <a href="cards-management.html" class="menu-item">Cards Management</a>
+      <a href="loans-credit.html" class="menu-item">Loans & Credit</a>
+      <a href="profile-kyc.html" class="menu-item">Profile & KYC</a>
+      <a href="alert-notification.html" class="menu-item">Alerts & Notification</a>
+      <a href="settings.html" class="menu-item">Settings</a>
+      <a href="help-support.html" class="menu-item">Help & Support</a>
+      <a href="#" class="menu-item logout" onclick="logout()">Logout</a>
+
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <header class="header">
+      <h1>Accounts & Statements</h1>
+    </header>
+
+    <!-- ACCOUNT SELECTION -->
+    <section class="card">
+      <h2>Select Account</h2>
+
+      <select id="accountSelect" onchange="loadAccount()">
+        <option value="0">Savings Account - XXXX1234</option>
+        <option value="1">Salary Account - XXXX5678</option>
+        <option value="2">Current Account - XXXX9012</option>
+      </select>
+    </section>
+
+    <!-- ACCOUNT DETAILS -->
+    <section class="card">
+      <h2>Account Details</h2>
+      <div id="accountDetails"></div>
+    </section>
+
+    <!-- MINI STATEMENT -->
+    <section class="card">
+      <h2>Mini Statement (Last 10 Transactions)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody id="miniStatement"></tbody>
+      </table>
+    </section>
+
+    <!-- STATEMENT FILTER -->
+    <section class="card">
+      <h2>Download Statement</h2>
+
+      <div class="tx-controls">
+        <input type="date" id="fromDate">
+        <input type="date" id="toDate">
+        <button onclick="downloadCSV()">Download CSV</button>
+        <button onclick="downloadPDF()">Download PDF</button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      © 2025 AutomatedScript Bank
+    </footer>
+
+  </main>
+
+  <!-- SCRIPT -->
+  <script>
+    /* =====================
+       ACCOUNT DATA
+    ====================== */
+    const accounts = [
+      {
+        type: "Savings",
+        number: "XXXX1234",
+        balance: BankStore.getBalance(),   // shared with Dashboard and Fund Transfer
+        interest: 2345,
+        status: "Active"
+      },
+      {
+        type: "Salary",
+        number: "XXXX5678",
+        balance: 120000,
+        interest: 1800,
+        status: "Active"
+      },
+      {
+        type: "Current",
+        number: "XXXX9012",
+        balance: 340000,
+        interest: 0,
+        status: "Dormant"
+      }
+    ];
+
+    let transactions = [];
+
+    function randomDate() {
+      const d = new Date();
+      d.setDate(d.getDate() - Math.floor(Math.random() * 30 + 1));
+      return d.toISOString().split("T")[0];
+    }
+
+    function generateTransactions() {
+      const desc = [
+        "Salary Credit", "ATM Withdrawal", "UPI Transfer",
+        "Electricity Bill", "Online Shopping", "Insurance Premium"
+      ];
+      transactions = [];
+
+      for (let i = 0; i < 20; i++) {
+        const credit = Math.random() > 0.5;
+        transactions.push({
+          date: randomDate(),
+          desc: desc[Math.floor(Math.random() * desc.length)],
+          type: credit ? "Credit" : "Debit",
+          amount: credit ? `₹${Math.floor(Math.random() * 9000 + 1000)}` :
+            `-₹${Math.floor(Math.random() * 4000 + 500)}`
+        });
+      }
+    }
+
+    /* =====================
+       LOAD ACCOUNT
+    ====================== */
+    function loadAccount() {
+      const idx = document.getElementById("accountSelect").value;
+      const acc = accounts[idx];
+
+      document.getElementById("accountDetails").innerHTML = `
+        <p><strong>Account Type:</strong> ${acc.type}</p>
+        <p><strong>Account Number:</strong> ${acc.number}</p>
+        <p><strong>Balance:</strong> ₹${acc.balance}</p>
+        <p><strong>Interest Earned:</strong> ₹${acc.interest}</p>
+        <p><strong>Status:</strong>
+          <span class="${acc.status === "Active" ? "active" : "dormant"}">
+            ${acc.status}
+          </span>
+        </p>
+      `;
+
+      generateTransactions();
+
+      // Transfers are made from Savings: show them first, newest at the top.
+      if (acc.type === "Savings") {
+        const transfers = BankStore.getTransfers().map(t => ({
+          date: t.date,
+          desc: `Transfer to ${t.payee} (${t.ref})${t.status === "Scheduled" ? " - Scheduled" : ""}`,
+          type: "Debit",
+          amount: `-₹${BankStore.total(t)}`
+        }));
+        transactions = [...transfers, ...transactions];
+      }
+
+      renderMiniStatement();
+    }
+
+    /* =====================
+       MINI STATEMENT
+    ====================== */
+    function renderMiniStatement() {
+      const tbody = document.getElementById("miniStatement");
+      tbody.innerHTML = "";
+
+      transactions.slice(0, 10).forEach(tx => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${tx.date}</td>
+          <td>${tx.desc}</td>
+          <td>${tx.type}</td>
+          <td class="${tx.type === "Credit" ? "credit" : "debit"}">${tx.amount}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    /* =====================
+       CSV DOWNLOAD
+    ====================== */
+    function downloadCSV() {
+      let csv = "Date,Description,Type,Amount\n";
+      transactions.forEach(tx => {
+        csv += `${tx.date},${tx.desc},${tx.type},${tx.amount}\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "account-statement.csv";
+      link.click();
+    }
+
+    /* =====================
+       PDF DOWNLOAD
+    ====================== */
+    function downloadPDF() {
+      window.print();
+    }
+
+    /* INIT */
+    document.addEventListener("DOMContentLoaded", loadAccount);
+  </script>
+  <<script>
+    (function () {
+    const currentPage = window.location.pathname.split("/").pop();
+
+    document.querySelectorAll(".menu-item").forEach(link => {
+    // 🔴 IMPORTANT: remove active from all first
+    link.classList.remove("active");
+
+    const href = link.getAttribute("href");
+    if (href === currentPage) {
+    link.classList.add("active");
+    }
+    });
+    })();
+    </script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AutomatedScript Bank | Fund Transfer</title>
+    <link rel="icon" type="image/png" href="img/favicon.png">
+	<link rel="shortcut icon" href="/favicon.png" type="image/png">
+    <link rel="stylesheet" href="css/style-dashboard.css">
+    <script src="js/bank-store.js"></script>
+</head>
+
+<body>
+
+    <!-- ================= AUTH GUARD ================= -->
+    <script>
+        (function () {
+            if (sessionStorage.getItem("isLoggedIn") !== "true") {
+                window.location.href = "login.html";
+            }
+        })();
+    </script>
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar">
+        <img src="img/bank-logo.png" class="sidebar-logo">
+        <nav class="menu">
+            <a href="dashboard.html" class="menu-item">Dashboard</a>
+            <a href="accounts-statements.html" class="menu-item">Account Details</a>
+            <a href="beneficiary-mgt.html" class="menu-item">Add Beneficiaries</a>
+            <a href="fund-transfer.html" class="menu-item">Fund Transfers</a>
+            <a href="bill-payments.html" class="menu-item">Bill & Payments</a>
+            <a href="cards-management.html" class="menu-item">Cards Management</a>
+            <a href="loans-credit.html" class="menu-item">Loans & Credit</a>
+            <a href="profile-kyc.html" class="menu-item">Profile & KYC</a>
+            <a href="alert-notification.html" class="menu-item">Alerts & Notification</a>
+            <a href="settings.html" class="menu-item">Settings</a>
+            <a href="help-support.html" class="menu-item">Help & Support</a>
+            <a href="#" class="menu-item logout" onclick="logout()">Logout</a>
+
+        </nav>
+    </aside>
+
+    <!-- ================= MAIN ================= -->
+    <main class="main-content">
+
+        <header class="header">
+            <h1>Fund Transfer</h1>
+        </header>
+
+        <!-- ================= TRANSFER CONTAINER (NEW) ================= -->
+        <div class="transfer-container">
+
+            <!-- ================= TRANSFER CARD ================= -->
+            <section class="card transfer-card">
+
+                <h2>Transfer Details</h2>
+
+                <div class="balance-bar">
+                    Available Balance:
+                    <strong>₹<span id="balance">75400</span></strong>
+                </div>
+                <p id="heldNote" class="training-note hidden"></p>
+
+                <div class="transfer-grid">
+
+                    <!-- LEFT COLUMN -->
+                    <div>
+
+                        <div class="form-group">
+                            <label>Transfer Type</label>
+                            <select id="transferType" onchange="updateTransferType()">
+                                <option value="">Select</option>
+                                <option value="own">Own Account</option>
+                                <option value="same">Same Bank</option>
+                                <option value="other">Other Bank</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Beneficiary</label>
+                            <select id="beneficiary">
+                                <option value="">Select Beneficiary</option>
+
+                                <!-- ACTIVE -->
+                                <option value="Self Savings">Self Savings (Active)</option>
+                                <option value="Ishaan">Ishaan – Same Bank (Active)</option>
+                                <option value="Riddhi">Riddhi – Same Bank (Active)</option>
+                                <option value="Nityam">Nityam – Other Bank (Active)</option>
+
+                                <!-- DISABLED -->
+                                <option value="Raj" disabled>Raj – Other Bank (Pending Approval)</option>
+                                <option value="Amit" disabled>Amit – Other Bank (Rejected)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group hidden" id="modeWrapper">
+                            <label>Transfer Mode</label>
+                            <select id="mode">
+                                <option value="">Select Mode</option>
+                                <option value="IMPS">IMPS</option>
+                                <option value="NEFT">NEFT</option>
+                                <option value="RTGS">RTGS</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Amount (₹)</label>
+                            <input type="number" id="amount" placeholder="Enter amount">
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT COLUMN -->
+                    <div>
+
+                        <div class="form-group">
+                            <label>Remarks / Narration</label>
+                            <input type="text" id="remarks" placeholder="Optional">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Schedule Transfer</label>
+                            <input type="date" id="scheduleDate">
+                        </div>
+
+                        <div class="summary-box">
+                            <p id="charges">Charges: ₹0</p>
+                            <p id="error" class="error"></p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="form-actions">
+                    <button class="login-btn" onclick="openConfirmModal()">Proceed</button>
+                </div>
+
+            </section>
+
+            <!-- ================= RECEIPT ================= -->
+            <section class="card hidden" id="receiptCard" role="region" aria-labelledby="receiptTitle">
+                <h2 id="receiptTitle">Transaction Receipt</h2>
+                <div id="receiptBody"></div>
+                <button onclick="window.print()">Print / Save PDF</button>
+            </section>
+
+            <!-- ================= PENDING ================= -->
+            <section class="card">
+                <h2>Pending / Scheduled Transfers</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Beneficiary</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pendingTable"></tbody>
+                </table>
+            </section>
+
+        </div>
+
+        <!-- ================= CONFIRM MODAL ================= -->
+        <div id="confirmModal" class="modal hidden" role="dialog" aria-labelledby="confirmTitle">
+            <div class="modal-content">
+                <h3 id="confirmTitle">Confirm Transfer</h3>
+                <div id="confirmDetails"></div>
+
+                <div class="modal-actions">
+                    <button onclick="closeConfirm()">Cancel</button>
+                    <button class="login-btn" onclick="sendOtp()">Confirm</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= OTP MODAL ================= -->
+        <div id="otpModal" class="modal hidden" role="dialog" aria-labelledby="otpTitle">
+            <div class="modal-content">
+                <h3 id="otpTitle">OTP Verification</h3>
+                <p>OTP sent to registered mobile XXXXX67890</p>
+
+                <input type="text" id="otpInput" placeholder="Enter OTP">
+
+                <p class="training-note">
+                    ⚠️ OTP is simulated for training purposes.
+                    Check alert or browser console.
+                </p>
+
+                <div class="modal-actions">
+                    <button onclick="closeOtp()">Cancel</button>
+                    <button class="login-btn" onclick="finalSubmit()">Verify OTP</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= SUCCESS MODAL ================= -->
+        <div id="successModal" class="modal hidden" role="dialog" aria-labelledby="successMsg">
+            <div class="modal-content">
+                <div class="success">
+                    <div class="checkmark">✔</div>
+                    <h3 id="successMsg"></h3>
+                    <button class="login-btn" onclick="closeSuccess()">Done</button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            © 2025 AutomatedScript Bank |
+            <span class="training-footer">Training Simulation</span>
+        </footer>
+
+    </main>
+
+    <!-- ================= SCRIPT ================= -->
+    <script>
+        // Balance and transfers come from js/bank-store.js (sessionStorage),
+        // so a reload or another page sees the same numbers.
+        let balance = BankStore.getBalance();
+        let held = BankStore.getHeld();
+        let generatedOtp = "";
+        let lastSignature = "";
+
+        function updateTransferType() {
+            const type = transferType.value;
+            modeWrapper.classList.toggle("hidden", type !== "other");
+        }
+
+        function calculateCharges(mode) {
+            if (mode === "IMPS") return 5;
+            if (mode === "NEFT") return 2;
+            if (mode === "RTGS") return 25;
+            return 0;
+        }
+
+        function openConfirmModal() {
+            error.innerText = "";
+            const amt = Number(amount.value);
+            const ch = calculateCharges(mode.value);
+            charges.innerText = `Charges: ₹${ch}`;
+
+            if (!transferType.value || !beneficiary.value || !amt) {
+                error.innerText = "All mandatory fields are required.";
+                return;
+            }
+
+            if (mode.value === "RTGS" && amt < 200000) {
+                error.innerText = "RTGS minimum amount is ₹2,00,000.";
+                return;
+            }
+
+            // Money already promised to scheduled transfers is not available.
+            if (amt + ch > balance - held) {
+                error.innerText = "Insufficient balance.";
+                return;
+            }
+
+            const sig = `${beneficiary.value}-${amt}-${mode.value}-${scheduleDate.value}`;
+            if (sig === lastSignature) {
+                error.innerText = "Duplicate transaction detected.";
+                return;
+            }
+
+            confirmDetails.innerHTML = `
+                <p><strong>Beneficiary:</strong> ${beneficiary.value}</p>
+                <p><strong>Amount:</strong> ₹${amt}</p>
+                <p><strong>Charges:</strong> ₹${ch}</p>
+                <p><strong>Mode:</strong> ${mode.value || "N/A"}</p>
+            `;
+
+            confirmModal.classList.remove("hidden");
+        }
+
+        function closeConfirm() {
+            confirmModal.classList.add("hidden");
+        }
+
+        function sendOtp() {
+            generatedOtp = Math.floor(100000 + Math.random() * 900000);
+            alert("OTP (Training): " + generatedOtp);
+            confirmModal.classList.add("hidden");
+            otpModal.classList.remove("hidden");
+        }
+
+        function closeOtp() {
+            otpModal.classList.add("hidden");
+        }
+
+        function finalSubmit() {
+            if (otpInput.value != generatedOtp) {
+                alert("Invalid OTP");
+                return;
+            }
+
+            otpModal.classList.add("hidden");
+
+            const amt = Number(amount.value);
+            const ch = calculateCharges(mode.value);
+            const isScheduled = scheduleDate.value !== "";
+
+            const ref = "TXN" + Math.floor(Math.random() * 100000000);
+
+            // Record the transfer. A scheduled one is held, and debited
+            // on its date (bank-store.js); an immediate one is debited now.
+            BankStore.addTransfer({
+                ref,
+                date: isScheduled ? scheduleDate.value : BankStore.today(),
+                payee: beneficiary.value,
+                amount: amt,
+                mode: mode.value || "N/A",
+                charges: ch,
+                remarks: remarks.value,
+                status: isScheduled ? "Scheduled" : "Success"
+            });
+            refreshFromStore();
+
+            successMsg.innerText =
+                isScheduled ? "Transfer Scheduled Successfully" : "Transfer Successful";
+            successModal.classList.remove("hidden");
+
+            receiptBody.innerHTML = `
+                <p><strong>Reference ID:</strong> ${ref}</p>
+                <p><strong>Beneficiary:</strong> ${beneficiary.value}</p>
+                <p><strong>Amount:</strong> ₹${amt}</p>
+                <p><strong>Status:</strong> ${isScheduled ? "Scheduled" : "Success"}</p>
+            `;
+            receiptCard.classList.remove("hidden");
+
+            lastSignature = `${beneficiary.value}-${amt}-${mode.value}-${scheduleDate.value}`;
+        }
+
+        // Scheduled transfers, oldest first, rebuilt from the store.
+        function renderPending() {
+            pendingTable.innerHTML = "";
+            BankStore.getTransfers()
+                .filter(tx => tx.status === "Scheduled")
+                .reverse()
+                .forEach(tx => {
+                    pendingTable.innerHTML += `
+                    <tr>
+                        <td>${tx.date}</td>
+                        <td>${tx.payee}</td>
+                        <td>₹${tx.amount}</td>
+                        <td>${tx.status}</td>
+                    </tr>
+                `;
+                });
+        }
+
+        function refreshFromStore() {
+            balance = BankStore.getBalance();
+            held = BankStore.getHeld();
+            document.getElementById("balance").innerText = balance;
+            heldNote.innerText = `₹${held} on hold for scheduled transfers (debited on their dates).`;
+            heldNote.classList.toggle("hidden", held === 0);
+            renderPending();
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = "login.html";
+        }
+
+        function closeSuccess() {
+            successModal.classList.add("hidden");
+        }
+
+        // ---------------- BENEFICIARY LOADER ----------------
+        // The six options in the markup are the bank's fixed payees. Payees
+        // managed on Beneficiary Management (sessionStorage) are merged in:
+        // Active ones enabled, Pending / Rejected disabled. Self Savings,
+        // John and Raj belong to that page, so its status wins for them and
+        // deleting one there removes it here.
+        const SHARED_PAYEES = ["Self Savings", "John", "Raj"];
+
+        function payeeLabel(b, status) {
+            if (b.name === "Self Savings") return `Self Savings (${status})`;
+            const where = b.bank === "AutomatedScript Bank" ? "Same Bank" : "Other Bank";
+            return `${b.name} – ${where} (${status})`;
+        }
+
+        function loadBeneficiaries() {
+            const select = document.getElementById("beneficiary");
+            const stored = BankStore.peekBeneficiaries();
+            const selectedFromPayNow = sessionStorage.getItem("selectedBeneficiary");
+
+            if (stored) {
+                Array.from(select.options).forEach(opt => {
+                    if (SHARED_PAYEES.includes(opt.value) &&
+                        !stored.some(b => b.name === opt.value)) {
+                        opt.remove();
+                    }
+                });
+
+                stored.forEach(b => {
+                    const status = BankStore.effectiveStatus(b);
+                    let opt = Array.from(select.options).find(o => o.value === b.name);
+                    if (!opt) {
+                        opt = document.createElement("option");
+                        opt.value = b.name;
+                        select.appendChild(opt);
+                    }
+                    opt.textContent = payeeLabel(b, status);
+                    opt.disabled = status !== "Active";
+                });
+            }
+
+            // Pay Now on Beneficiary Management
+            if (selectedFromPayNow) {
+                const opt = Array.from(select.options)
+                    .find(o => o.value === selectedFromPayNow && !o.disabled);
+                if (opt) select.value = selectedFromPayNow;
+                sessionStorage.removeItem("selectedBeneficiary");
+            }
+        }
+
+        /* INIT */
+        loadBeneficiaries();
+        refreshFromStore();
+
+
+    </script>
+    <script>
+        (function () {
+            const currentPage = window.location.pathname.split("/").pop();
+
+            document.querySelectorAll(".menu-item").forEach(link => {
+                // 🔴 IMPORTANT: remove active from all first
+                link.classList.remove("active");
+
+                const href = link.getAttribute("href");
+                if (href === currentPage) {
+                    link.classList.add("active");
+                }
+            });
+        })();
+    </script>
+
+</body>
+
+</html>

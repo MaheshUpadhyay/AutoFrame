@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>AutomatedScript Bank | Help Article</title>
+  <link rel="icon" type="image/png" href="img/favicon.png">
+  <link rel="stylesheet" href="css/style-dashboard.css">
+  <style>
+    body { margin: 0; padding: 10px 14px; background: white; font-size: 14px; }
+    h3 { margin: 4px 0 8px; }
+    ol { margin: 0 0 8px; padding-left: 20px; }
+  </style>
+</head>
+
+<!-- Loaded inside live-chat.html as <iframe title="Help article">,
+     which is itself inside help-support.html: a nested frame. -->
+
+<body>
+
+  <h3>How beneficiary approval works</h3>
+  <ol>
+    <li>Add the beneficiary and verify the OTP.</li>
+    <li>It shows as Pending Approval for 30 minutes.</li>
+    <li>Once Active, use Pay Now to send money.</li>
+  </ol>
+
+  <p>Was this article helpful?
+    <button onclick="feedback('Yes')">Yes</button>
+    <button onclick="feedback('No')">No</button>
+  </p>
+  <p id="feedbackMsg" role="status"></p>
+
+  <script>
+    function feedback(answer) {
+      feedbackMsg.innerText = answer === "Yes"
+        ? "Thanks for your feedback!"
+        : "Sorry about that. Ask Ananya in the chat above.";
+    }
+  </script>
+
+</body>
+
+</html>
