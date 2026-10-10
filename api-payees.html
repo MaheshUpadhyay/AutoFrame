@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AutomatedScript Bank | Payees (Live API)</title>
+    <link rel="icon" type="image/png" href="img/favicon.png">
+    <link rel="shortcut icon" href="/favicon.png" type="image/png">
+    <link rel="stylesheet" href="css/style-dashboard.css">
+    <script src="js/bank-api.js"></script>
+    <style>
+        .api-note { font-size: 13px; color: #475569; margin: 4px 0 0; }
+        .api-user { font-weight: 600; }
+        .api-actions { display: flex; gap: 10px; align-items: center; }
+        #apiMessage { min-height: 20px; margin: 10px 0 0; }
+        #apiMessage.ok { color: #0F9D58; }
+        #apiMessage.error { color: #c40000; }
+    </style>
+</head>
+
+<!-- A page that talks to the live AutomatedScript Banking API.
+     Every action below is a real request (see the Network tab):
+       Sign in      POST /auth/login, then POST /auth/verify-otp
+       Accounts     GET  /accounts
+       Payees       GET  /beneficiaries
+       Add payee    POST /beneficiaries
+       Delete       DELETE /beneficiaries/{id}
+     The API's users are not the bank's: try riya / Password@123. -->
+
+<body>
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar">
+        <img src="img/bank-logo.png" class="sidebar-logo">
+        <nav class="menu">
+            <a href="dashboard.html" class="menu-item">Dashboard</a>
+            <a href="accounts-statements.html" class="menu-item">Account Details</a>
+            <a href="beneficiary-mgt.html" class="menu-item">Add Beneficiaries</a>
+            <a href="fund-transfer.html" class="menu-item">Fund Transfers</a>
+            <a href="bill-payments.html" class="menu-item">Bill & Payments</a>
+            <a href="cards-management.html" class="menu-item">Cards Management</a>
+            <a href="loans-credit.html" class="menu-item">Loans & Credit</a>
+            <a href="profile-kyc.html" class="menu-item">Profile & KYC</a>
+            <a href="alert-notification.html" class="menu-item">Alerts & Notification</a>
+            <a href="settings.html" class="menu-item">Settings</a>
+            <a href="help-support.html" class="menu-item">Help & Support</a>
+        </nav>
+    </aside>
+
+    <!-- ================= MAIN ================= -->
+    <main class="main-content">
+
+        <header class="header">
+            <h1>Payees (Live API)</h1>
+        </header>
+
+        <div class="transfer-container">
+
+            <!-- ================= API SIGN IN ================= -->
+            <section class="card" id="signInCard" aria-labelledby="signInTitle">
+                <h2 id="signInTitle">Sign in to the Banking API</h2>
+                <p class="api-note">This page uses the live API at
+                    automatedscript-banking-api.onrender.com, not the bank's own login.</p>
+
+                <div class="transfer-grid">
+                    <div class="form-group">
+                        <label for="apiUsername">API Username</label>
+                        <input type="text" id="apiUsername" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="apiPassword">API Password</label>
+                        <input type="password" id="apiPassword" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="login-btn" id="signInBtn" onclick="signIn()">Sign In</button>
+                </div>
+            </section>
+
+            <!-- ================= SIGNED IN ================= -->
+            <section class="card hidden" id="sessionCard" aria-labelledby="sessionTitle">
+                <h2 id="sessionTitle">Signed in</h2>
+                <div class="api-actions">
+                    <span>Signed in as <span class="api-user" id="apiUserName"></span>
+                        (<span id="apiUserRole"></span>)</span>
+                    <button onclick="refreshAll()">Refresh</button>
+                    <button onclick="signOut()">Sign Out</button>
+                </div>
+            </section>
+
+            <!-- ================= ACCOUNTS ================= -->
+            <section class="card hidden" id="accountsCard" aria-labelledby="accountsTitle">
+                <h2 id="accountsTitle">Accounts</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Account ID</th>
+                            <th>Type</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accountsTable"></tbody>
+                </table>
+            </section>
+
+            <!-- ================= ADD PAYEE ================= -->
+            <section class="card hidden" id="addCard" aria-labelledby="addTitle">
+                <h2 id="addTitle">Add Payee</h2>
+                <div class="transfer-grid">
+                    <div>
+                        <div class="form-group">
+                            <label for="payeeName">Payee Name</label>
+                            <input type="text" id="payeeName">
+                        </div>
+                        <div class="form-group">
+                            <label for="payeeAccount">Account Number</label>
+                            <input type="text" id="payeeAccount">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group">
+                            <label for="payeeIfsc">IFSC Code</label>
+                            <input type="text" id="payeeIfsc">
+                        </div>
+                        <div class="form-group">
+                            <label for="payeeBank">Bank Name</label>
+                            <input type="text" id="payeeBank">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="login-btn" onclick="addPayee()">Add Payee</button>
+                </div>
+            </section>
+
+            <!-- ================= PAYEES ================= -->
+            <section class="card hidden" id="payeesCard" aria-labelledby="payeesTitle">
+                <h2 id="payeesTitle">Payees</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Payee ID</th>
+                            <th>Name</th>
+                            <th>Account</th>
+                            <th>IFSC</th>
+                            <th>Bank</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payeesTable"></tbody>
+                </table>
+            </section>
+
+            <p id="apiMessage" role="status"></p>
+        </div>
+
+        <!-- ================= OTP MODAL ================= -->
+        <div id="otpModal" class="modal hidden" role="dialog" aria-labelledby="otpTitle">
+            <div class="modal-content">
+                <h3 id="otpTitle">OTP Verification</h3>
+                <p id="otpSentTo"></p>
+                <input type="text" id="otpInput" placeholder="Enter OTP">
+                <p class="training-note">
+                    ⚠️ OTP is simulated for training purposes. Check the alert.
+                </p>
+                <div class="modal-actions">
+                    <button onclick="closeOtp()">Cancel</button>
+                    <button class="login-btn" onclick="verifyOtp()">Verify OTP</button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            © 2025 AutomatedScript Bank |
+            <span class="training-footer">Training Simulation</span>
+        </footer>
+
+    </main>
+
+    <script>
+        let otpSessionId = "";
+
+        function show(id, visible) {
+            document.getElementById(id).classList.toggle("hidden", !visible);
+        }
+
+        function say(text, kind) {
+            apiMessage.innerText = text;
+            apiMessage.className = kind || "";
+        }
+
+        function cell(text) {
+            const td = document.createElement("td");
+            td.textContent = text;
+            return td;
+        }
+
+        /* ---------------- SIGN IN ---------------- */
+        async function signIn() {
+            say("");
+            if (!apiUsername.value || !apiPassword.value) {
+                say("Enter the API username and password.", "error");
+                return;
+            }
+            try {
+                const res = await BankApi.login(apiUsername.value, apiPassword.value);
+                otpSessionId = res.otpSessionId;
+                otpSentTo.innerText = "OTP sent to registered mobile " + res.maskedMobile;
+                alert("OTP (Training): " + res.demoOtp);
+                otpInput.value = "";
+                show("otpModal", true);
+            } catch (e) {
+                say(e.message, "error");
+            }
+        }
+
+        function closeOtp() {
+            show("otpModal", false);
+        }
+
+        async function verifyOtp() {
+            try {
+                const res = await BankApi.verifyOtp(otpSessionId, otpInput.value);
+                BankApi.saveSession(res);
+                show("otpModal", false);
+                apiPassword.value = "";
+                await showSignedIn();
+            } catch (e) {
+                show("otpModal", false);
+                say(e.message, "error");
+            }
+        }
+
+        function signOut() {
+            BankApi.clearSession();
+            say("Signed out.", "ok");
+            showSignedOut();
+        }
+
+        /* ---------------- DATA ---------------- */
+        async function loadAccounts() {
+            const res = await BankApi.accounts();
+            accountsTable.innerHTML = "";
+            res.data.forEach(a => {
+                const tr = document.createElement("tr");
+                tr.append(cell(a.accountId), cell(a.type), cell("₹" + a.balance), cell(a.status));
+                accountsTable.appendChild(tr);
+            });
+        }
+
+        async function loadPayees() {
+            const res = await BankApi.beneficiaries();
+            payeesTable.innerHTML = "";
+            if (res.data.length === 0) {
+                const tr = document.createElement("tr");
+                const td = cell("No payees yet.");
+                td.colSpan = 6;
+                tr.appendChild(td);
+                payeesTable.appendChild(tr);
+            }
+            res.data.forEach(b => {
+                const tr = document.createElement("tr");
+                const action = document.createElement("td");
+                const del = document.createElement("button");
+                del.textContent = "Delete";
+                del.onclick = () => deletePayee(b.beneficiaryId, b.name);
+                action.appendChild(del);
+                tr.append(cell(b.beneficiaryId), cell(b.name), cell(b.accountNumber),
+                    cell(b.ifsc), cell(b.bankName), action);
+                payeesTable.appendChild(tr);
+            });
+        }
+
+        async function refreshAll() {
+            try {
+                await Promise.all([loadAccounts(), loadPayees()]);
+            } catch (e) {
+                if (e.status === 401) {
+                    BankApi.clearSession();
+                    showSignedOut();
+                }
+                say(e.message, "error");
+            }
+        }
+
+        async function addPayee() {
+            say("");
+            try {
+                const res = await BankApi.addBeneficiary({
+                    name: payeeName.value,
+                    accountNumber: payeeAccount.value,
+                    ifsc: payeeIfsc.value,
+                    bankName: payeeBank.value
+                });
+                say(res.message + ": " + res.data.name + " (" + res.data.beneficiaryId + ")", "ok");
+                payeeName.value = payeeAccount.value = payeeIfsc.value = payeeBank.value = "";
+                await loadPayees();
+            } catch (e) {
+                say(e.message, "error");
+            }
+        }
+
+        async function deletePayee(id, name) {
+            if (!confirm("Delete payee " + name + "?")) return;
+            try {
+                await BankApi.deleteBeneficiary(id);
+                say("Payee deleted: " + name, "ok");
+                await loadPayees();
+            } catch (e) {
+                say(e.message, "error");
+            }
+        }
+
+        /* ---------------- VIEW ---------------- */
+        async function showSignedIn() {
+            const u = BankApi.user() || {};
+            apiUserName.innerText = u.fullName || "API user";
+            apiUserRole.innerText = u.role || "";
+            show("signInCard", false);
+            ["sessionCard", "accountsCard", "addCard", "payeesCard"].forEach(id => show(id, true));
+            await refreshAll();
+        }
+
+        function showSignedOut() {
+            show("signInCard", true);
+            ["sessionCard", "accountsCard", "addCard", "payeesCard"].forEach(id => show(id, false));
+        }
+
+        /* INIT: a token already in this tab (e.g. injected by a test) signs straight in */
+        if (BankApi.signedIn()) {
+            showSignedIn();
+        } else {
+            showSignedOut();
+        }
+    </script>
+
+</body>
+
+</html>
