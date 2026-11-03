@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title data-i18n="settings_title">Settings</title>
+  <link rel="shortcut icon" href="/favicon.png" type="image/png">
+  <link rel="stylesheet" href="css/style-dashboard.css">
+</head>
+
+<body>
+
+  <!-- ================= AUTH GUARD ================= -->
+  <script>
+    (function () {
+      if (sessionStorage.getItem("isLoggedIn") !== "true") {
+        window.location.href = "login.html";
+      }
+    })();
+  </script>
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <img src="img/bank-logo.png" class="sidebar-logo">
+    <nav class="menu">
+      <a href="dashboard.html" class="menu-item">Dashboard</a>
+      <a href="accounts-statements.html" class="menu-item">Account Details</a>
+      <a href="beneficiary-mgt.html" class="menu-item">Add Beneficiaries</a>
+      <a href="fund-transfer.html" class="menu-item">Fund Transfers</a>
+      <a href="bill-payments.html" class="menu-item">Bill & Payments</a>
+      <a href="cards-management.html" class="menu-item">Cards Management</a>
+      <a href="loans-credit.html" class="menu-item">Loans & Credit</a>
+      <a href="profile-kyc.html" class="menu-item">Profile & KYC</a>
+      <a href="alert-notification.html" class="menu-item">Alerts & Notification</a>
+      <a href="settings.html" class="menu-item">Settings</a>
+      <a href="help-support.html" class="menu-item">Help & Support</a>
+      <a href="#" class="menu-item logout" onclick="logout()">Logout</a>
+
+    </nav>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main-content">
+
+    <header class="header">
+      <h1 data-i18n="settings">Settings</h1>
+    </header>
+
+    <!-- ================= SETTINGS TABS ================= -->
+    <div class="card-tabs">
+      <button class="tab active" onclick="showTab('password')" data-i18n="change_password">Change Password</button>
+      <button class="tab" onclick="showTab('username')" data-i18n="change_username">Change Username</button>
+      <button class="tab" onclick="showTab('language')" data-i18n="language">Language</button>
+      <button class="tab" onclick="showTab('theme')" data-i18n="theme">Theme</button>
+      <button class="tab" onclick="showTab('notifications')" data-i18n="notifications">Notifications</button>
+    </div>
+
+    <div class="transfer-container">
+
+      <!-- ================= CHANGE PASSWORD ================= -->
+      <section class="card tab-content" id="password">
+        <h2 data-i18n="change_password">Change Password</h2>
+
+        <div class="form-group">
+          <label data-i18n="current_password">Current Password</label>
+          <input type="password" id="currentPassword">
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="new_password">New Password</label>
+          <input type="password" id="newPassword">
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="confirm_password">Confirm New Password</label>
+          <input type="password" id="confirmPassword">
+        </div>
+
+        <p class="training-note" data-i18n="password_rule">
+          Password must be 8–15 characters with 1 uppercase, 1 number and 1 special character.
+        </p>
+
+        <p id="passwordError" class="error"></p>
+
+        <div class="form-actions">
+          <button class="login-btn" onclick="confirmAction('password')" data-i18n="save">
+            Save
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= CHANGE USERNAME ================= -->
+      <section class="card tab-content hidden" id="username">
+        <h2 data-i18n="change_username">Change Username</h2>
+
+        <div class="form-group">
+          <label data-i18n="new_username">New Username</label>
+          <input type="text" id="usernameInput">
+        </div>
+
+        <p id="usernameError" class="error"></p>
+
+        <div class="form-actions">
+          <button class="login-btn" onclick="confirmAction('username')" data-i18n="save">
+            Save
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= LANGUAGE ================= -->
+      <section class="card tab-content hidden" id="language">
+        <h2 data-i18n="language_preference">Language Preference</h2>
+
+        <div class="form-group">
+          <label data-i18n="select_language">Select Language</label>
+          <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="hi">हिन्दी</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button class="login-btn" onclick="saveLanguage()" data-i18n="save">
+            Save
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= THEME ================= -->
+      <section class="card tab-content hidden" id="theme">
+        <h2 data-i18n="theme">Theme</h2>
+
+        <div class="form-group">
+          <label>
+            <input type="radio" name="theme" value="light" checked>
+            <span data-i18n="light_mode">Light Mode</span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <input type="radio" name="theme" value="dark">
+            <span data-i18n="dark_mode">Dark Mode</span>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button class="login-btn" onclick="applyTheme()" data-i18n="apply">
+            Apply
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= NOTIFICATIONS ================= -->
+      <section class="card tab-content hidden" id="notifications">
+        <h2 data-i18n="notifications">Notification Preferences</h2>
+
+        <div class="form-group">
+          <label><input type="checkbox" checked> <span data-i18n="txn_alerts">Transaction Alerts</span></label>
+        </div>
+
+        <div class="form-group">
+          <label><input type="checkbox" checked> <span data-i18n="security_alerts">Security Alerts</span></label>
+        </div>
+
+        <div class="form-actions">
+          <button class="login-btn" onclick="confirmAction('notifications')" data-i18n="save">
+            Save
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= TRAINING SWITCH (Section 17) ================= -->
+      <!-- Off unless ticked. While on, Fund Transfer shows its new wording. -->
+      <section class="card" id="trainingSwitches" style="margin-top: 20px;">
+        <h2>Training switches</h2>
+        <div class="form-group">
+          <label><input type="checkbox" id="newTransferWording" autocomplete="off"> <span>Training: new transfer wording (Section 17)</span></label>
+        </div>
+        <p class="training-note">While this is ticked, Fund Transfer uses its new wording. It is cleared when you log out or close the tab.</p>
+      </section>
+
+    </div>
+
+    <!-- ================= CONFIRM MODAL ================= -->
+    <div id="confirmModal" class="modal hidden">
+      <div class="modal-content">
+        <h3 data-i18n="confirm">Confirm</h3>
+        <p id="confirmText"></p>
+        <div class="modal-actions">
+          <button onclick="closeConfirm()" data-i18n="cancel">Cancel</button>
+          <button class="login-btn" onclick="sendOtp()" data-i18n="confirm">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= OTP MODAL ================= -->
+    <div id="otpModal" class="modal hidden">
+      <div class="modal-content">
+        <h3 data-i18n="otp_verification">OTP Verification</h3>
+        <input type="text" id="otpInput">
+        <p class="training-note">⚠️ OTP is simulated for training.</p>
+        <div class="modal-actions">
+          <button onclick="closeOtp()" data-i18n="cancel">Cancel</button>
+          <button class="login-btn" onclick="finalSubmit()" data-i18n="verify">Verify</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= SUCCESS ================= -->
+    <div id="successModal" class="modal hidden">
+      <div class="modal-content">
+        <div class="success">
+          <div class="checkmark">✔</div>
+          <h3 id="successMsg"></h3>
+          <button class="login-btn" onclick="closeSuccess()" data-i18n="done">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      © 2025 AutomatedScript Bank |
+      <span class="training-footer" data-i18n="training">Training Simulation</span>
+    </footer>
+
+  </main>
+
+  <!-- ================= SCRIPT ================= -->
+  <script>
+    let generatedOtp = "";
+    let pendingAction = "";
+
+    /* ---------- TABS ---------- */
+    function showTab(tabId) {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
+      document.querySelector(`[onclick="showTab('${tabId}')"]`).classList.add("active");
+      document.getElementById(tabId).classList.remove("hidden");
+    }
+
+    /* ---------- I18N ---------- */
+    const translations = {
+      en: {
+        settings_title: "Settings",
+        settings: "Settings",
+        dashboard: "Dashboard",
+        accounts: "Accounts",
+        fund_transfer: "Fund Transfer",
+        bill_payments: "Bill Payments",
+        cards: "Cards",
+        loans: "Loans & Credit",
+        profile: "Profile & KYC",
+        alerts: "Alerts",
+        logout: "Logout",
+        change_password: "Change Password",
+        change_username: "Change Username",
+        current_password: "Current Password",
+        new_password: "New Password",
+        confirm_password: "Confirm New Password",
+        password_rule: "Password must be 8–15 characters with 1 uppercase, 1 number and 1 special character.",
+        new_username: "New Username",
+        language: "Language",
+        language_preference: "Language Preference",
+        select_language: "Select Language",
+        theme: "Theme",
+        light_mode: "Light Mode",
+        dark_mode: "Dark Mode",
+        notifications: "Notification Preferences",
+        txn_alerts: "Transaction Alerts",
+        security_alerts: "Security Alerts",
+        save: "Save",
+        apply: "Apply",
+        confirm: "Confirm",
+        cancel: "Cancel",
+        verify: "Verify",
+        done: "Done",
+        training: "Training Simulation"
+      },
+      hi: {
+        settings_title: "सेटिंग्स",
+        settings: "सेटिंग्स",
+        dashboard: "डैशबोर्ड",
+        accounts: "खाते",
+        fund_transfer: "फंड ट्रांसफर",
+        bill_payments: "बिल भुगतान",
+        cards: "कार्ड्स",
+        loans: "ऋण और क्रेडिट",
+        profile: "प्रोफ़ाइल और केवाईसी",
+        alerts: "अलर्ट",
+        logout: "लॉगआउट",
+        change_password: "पासवर्ड बदलें",
+        change_username: "यूज़रनेम बदलें",
+        current_password: "वर्तमान पासवर्ड",
+        new_password: "नया पासवर्ड",
+        confirm_password: "नया पासवर्ड पुष्टि करें",
+        password_rule: "पासवर्ड 8–15 अक्षरों का होना चाहिए जिसमें 1 बड़ा अक्षर, 1 संख्या और 1 विशेष चिन्ह हो।",
+        new_username: "नया यूज़रनेम",
+        language: "भाषा",
+        language_preference: "भाषा चयन",
+        select_language: "भाषा चुनें",
+        theme: "थीम",
+        light_mode: "लाइट मोड",
+        dark_mode: "डार्क मोड",
+        notifications: "सूचना सेटिंग्स",
+        txn_alerts: "लेनदेन अलर्ट",
+        security_alerts: "सुरक्षा अलर्ट",
+        save: "सेव करें",
+        apply: "लागू करें",
+        confirm: "पुष्टि करें",
+        cancel: "रद्द करें",
+        verify: "सत्यापित करें",
+        done: "पूरा हुआ",
+        training: "प्रशिक्षण सिमुलेशन"
+      }
+    };
+
+    function applyLanguage(lang) {
+      localStorage.setItem("appLanguage", lang);
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (translations[lang][key]) el.innerText = translations[lang][key];
+      });
+    }
+
+    function saveLanguage() {
+      applyLanguage(languageSelect.value);
+      alert("Language updated (Training)");
+    }
+
+    /* ---------- VALIDATION + OTP ---------- */
+    function confirmAction(action) {
+      pendingAction = action;
+
+      if (action === "password") {
+        const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,15}$/;
+        if (!regex.test(newPassword.value) || newPassword.value !== confirmPassword.value) {
+          passwordError.innerText = "Invalid password.";
+          return;
+        }
+      }
+
+      if (action === "username" && usernameInput.value.length < 5) {
+        usernameError.innerText = "Username too short.";
+        return;
+      }
+
+      confirmText.innerText = "Proceed with this change?";
+      confirmModal.classList.remove("hidden");
+    }
+
+    function sendOtp() {
+      generatedOtp = Math.floor(100000 + Math.random() * 900000);
+      alert("OTP (Training): " + generatedOtp);
+      confirmModal.classList.add("hidden");
+      otpModal.classList.remove("hidden");
+    }
+
+    function finalSubmit() {
+      if (otpInput.value != generatedOtp) {
+        alert("Invalid OTP");
+        return;
+      }
+      otpModal.classList.add("hidden");
+      successMsg.innerText = "Settings updated successfully.";
+      successModal.classList.remove("hidden");
+    }
+
+    /* ---------- THEME ---------- */
+    function applyTheme() {
+      const theme = document.querySelector('input[name="theme"]:checked').value;
+      document.body.classList.toggle("dark-mode", theme === "dark");
+      localStorage.setItem("theme", theme);
+    }
+
+    /* ---------- INIT ---------- */
+    (function () {
+      applyLanguage(localStorage.getItem("appLanguage") || "en");
+      const theme = localStorage.getItem("theme");
+      if (theme === "dark") document.body.classList.add("dark-mode");
+    })();
+
+    /* ---------- TRAINING SWITCH (Section 17) ---------- */
+    // One sessionStorage key, off unless set, so a fresh tab sees the bank as before.
+    (function () {
+      const box = document.getElementById("newTransferWording");
+      box.checked = sessionStorage.getItem("training.newTransferWording") === "on";
+      box.addEventListener("change", () => {
+        if (box.checked) sessionStorage.setItem("training.newTransferWording", "on");
+        else sessionStorage.removeItem("training.newTransferWording");
+      });
+    })();
+
+    /* ---------- HELPERS ---------- */
+    function closeConfirm() { confirmModal.classList.add("hidden") }
+    function closeOtp() { otpModal.classList.add("hidden") }
+    function closeSuccess() { successModal.classList.add("hidden") }
+    function logout() { sessionStorage.clear(); window.location.href = "login.html"; }
+  </script>
+  <script>
+    /* RESET TAB & FORMS ON PAGE LOAD (BANK BEHAVIOR) */
+    (function () {
+      // Always open first tab
+      showTab("password");
+
+      // Clear sensitive form fields
+      document.querySelectorAll("input[type='password'], input[type='text']")
+        .forEach(i => i.value = "");
+
+      // Clear error messages
+      document.querySelectorAll(".error")
+        .forEach(e => e.innerText = "");
+    })();
+  </script>
+
+</body>
+
+</html>
